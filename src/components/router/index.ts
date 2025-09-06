@@ -17,6 +17,9 @@ import DivisionMembersPage from "../views/DivisionMember.vue"
 import About from "../views/About.vue"
 import Aspirations from "../views/Aspirations.vue"
 import Merch from "../views/Merch.vue"
+import VideoManagement from "../views/admin/VideoManagement.vue"
+import AformationRegistration from "../views/AformationRegistration.vue"
+import AformationVideos from "../views/AformationVideos.vue"
 
 const routes: Array<RouteRecordRaw> = [
   { path: "/", name: "Home", component: Home },
@@ -36,6 +39,9 @@ const routes: Array<RouteRecordRaw> = [
   { path: "/admin/Organizations", name: "Organization", component: Organizations },
   { path: "/admin/Users", name: "Users", component: Users },
   { path: "/admin/Member", name: "Member", component: Member },
+  { path: "/admin/videos", name: "VideoManagement", component: VideoManagement },
+  { path: "/aformation/register", name: "AformationRegistration", component: AformationRegistration },
+  { path: "/aformation/videos", name: "AformationVideos", component: AformationVideos },
   { path: "/:pathMatch(.*)*", name: "NotFound", component: NotFound },
 ]
 
