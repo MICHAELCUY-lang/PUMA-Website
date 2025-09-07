@@ -733,7 +733,7 @@ onMounted(() => {
         },
         {
             id: 2,
-            name: 'Kopi Cabinet'
+            name: 'Sapient Cabinet'
         },
     ];
 

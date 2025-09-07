@@ -29,8 +29,6 @@ const errors = ref<Record<string, string>>({})
 
 
 const batches = [
-  '2021',
-  '2022', 
   '2023',
   '2024'
 ]

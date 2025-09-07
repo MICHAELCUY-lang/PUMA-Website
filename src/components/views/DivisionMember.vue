@@ -55,7 +55,7 @@
           "instagram": "https://instagram.com/",
           "linkedin": "https://linkedin.com/in/",
           "personalDescription": "-",
-          "status": "Active"
+          "status": "Inactive"
         },
         {
           "id": 2,
@@ -69,7 +69,7 @@
           "instagram": "https://instagram.com/martha_nielsen",
           "linkedin": "https://linkedin.com/in/martha-nielsen",
           "personalDescription": "-",
-          "status": "Active"
+          "status": "Inactive"
         },
         {
           "id": 3,
