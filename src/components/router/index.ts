@@ -4,6 +4,8 @@ import Contact from "../views/Contact.vue"
 import Timeline from "../views/Timeline.vue"
 import Login from "../views/Login.vue"
 import Puma from "../views/Puma.vue"
+import PumaKaustav from "../views/PumaKaustav.vue"
+import PumaSapientia from "../views/PumaSapientia.vue"
 import NotFound from "../views/404.vue"
 import profile from "../views/profile.vue"
 import photo from "../views/PhotoboxApp.vue"
@@ -27,6 +29,10 @@ const routes: Array<RouteRecordRaw> = [
   { path: "/about", name: "About", component: About },
   { path: "/timeline", name: "Timeline", component: Timeline },
   { path: "/puma", name: "DivisionsList", component: Puma },
+  { path: "/puma-2024", name: "Puma2024", component: Puma },
+  { path: "/puma-kaustav", name: "PumaKaustav", component: PumaKaustav },
+  { path: "/puma-sapientia", name: "PumaSapientia", component: PumaSapientia },
+
   { path: "/division/:divisionName", name: "DivisionMembers", component: DivisionMembersPage },
   { path: "/login", name: "Login", component: Login },
   { path: "/profile", name: "profile", component: profile },

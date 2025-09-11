@@ -8,6 +8,8 @@ const isNavbarVisible = ref(true)
 const isMenuOpen = ref(false)
 const isUserMenuOpen = ref(false)
 const isOtherDropdownOpen = ref(false)
+const isOrgDropdownOpen = ref(false)
+const selectedYear = ref('2024')
 const route = useRoute()
 const isAnimating = ref(false)
 
@@ -98,6 +100,10 @@ const isHomePage = computed(() => {
   return route.path === '/'
 })
 
+const isOrgPageActive = computed(() => {
+  return route.path === '/puma' || route.path.startsWith('/puma')
+})
+
 const isAdmin = computed(() => {
   return isLoggedIn.value && currentUser.value.role === 'admin'
 })
@@ -176,8 +182,30 @@ const toggleOtherDropdown = () => {
   isOtherDropdownOpen.value = !isOtherDropdownOpen.value
   if (isMenuOpen.value && isOtherDropdownOpen.value) isMenuOpen.value = false;
   if (isUserMenuOpen.value && isOtherDropdownOpen.value) isUserMenuOpen.value = false;
+  if (isOrgDropdownOpen.value && isOtherDropdownOpen.value) isOrgDropdownOpen.value = false;
   if (isOtherDropdownOpen.value && !isNavbarVisible.value) {
     isNavbarVisible.value = true;
+  }
+}
+
+const toggleOrgDropdown = () => {
+  isOrgDropdownOpen.value = !isOrgDropdownOpen.value
+  if (isMenuOpen.value && isOrgDropdownOpen.value) isMenuOpen.value = false;
+  if (isUserMenuOpen.value && isOrgDropdownOpen.value) isUserMenuOpen.value = false;
+  if (isOtherDropdownOpen.value && isOrgDropdownOpen.value) isOtherDropdownOpen.value = false;
+  if (isOrgDropdownOpen.value && !isNavbarVisible.value) {
+    isNavbarVisible.value = true;
+  }
+}
+
+const navigateToOrganization = (cabinet: string) => {
+  selectedYear.value = cabinet
+  isOrgDropdownOpen.value = false
+  // Navigate to organization page with separate cabinet routes
+  if (cabinet === 'kaustav') {
+    window.location.href = `/PUMA-Website/puma-kaustav`
+  } else if (cabinet === 'sapientia') {
+    window.location.href = `/PUMA-Website/puma-sapientia`
   }
 }
 
@@ -206,6 +234,9 @@ const closeMenusOnClickOutside = (event: MouseEvent) => {
   }
   if (!target.closest('.other-dropdown-interactive-area') && isOtherDropdownOpen.value) {
     isOtherDropdownOpen.value = false
+  }
+  if (!target.closest('.org-dropdown-interactive-area') && isOrgDropdownOpen.value) {
+    isOrgDropdownOpen.value = false
   }
 }
 </script>
@@ -238,16 +269,62 @@ const closeMenusOnClickOutside = (event: MouseEvent) => {
       </div>
 
       <div class="mb-6 space-y-2">
-        <router-link v-for="(item) in navItems" :key="`mobile-${item.name}`" :to="item.path" :class="[
-          'flex items-center justify-between p-3 font-medium text-white transition-all duration-300 rounded-xl group',
-          route.path === item.path ? 'bg-white/15 border border-white/20' : 'hover:bg-white/10'
-        ]" @click="isMenuOpen = false">
-          <div class="flex items-center">
-            <span class="mr-3 text-lg opacity-70">{{ item.icon }}</span>
-            <span>{{ item.name }}</span>
+        <template v-for="(item) in navItems" :key="`mobile-${item.name}`">
+          <div v-if="item.name === 'Organization'">
+            <button
+              @click="toggleOrgDropdown"
+              :class="[
+                'flex items-center justify-between w-full p-3 font-medium text-white transition-all duration-300 rounded-xl group',
+                isOrgPageActive ? 'bg-white/15 border border-white/20' : 'hover:bg-white/10'
+              ]"
+            >
+              <div class="flex items-center">
+                <span class="mr-3 text-lg opacity-70">{{ item.icon }}</span>
+                <span>{{ item.name }}</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <div v-if="isOrgPageActive" class="w-2 h-2 bg-white rounded-full"></div>
+                <span :class="[
+                  'text-sm transition-transform duration-300',
+                  isOrgDropdownOpen ? 'rotate-180' : 'rotate-0'
+                ]">▼</span>
+              </div>
+            </button>
+            <div v-if="isOrgDropdownOpen" class="ml-6 mt-2 space-y-1">
+              <button
+                @click="navigateToOrganization('kaustav'); isMenuOpen = false"
+                :class="[
+                  'flex items-center w-full p-3 font-medium text-white transition-all duration-300 rounded-xl group',
+                  selectedYear === 'kaustav' ? 'bg-white/15 border border-white/20' : 'hover:bg-white/10'
+                ]"
+              >
+                <span class="mr-3">◆</span>
+                Kaustav Cabinet
+              </button>
+              <button
+                @click="navigateToOrganization('sapientia'); isMenuOpen = false"
+                :class="[
+                  'flex items-center w-full p-3 font-medium text-white transition-all duration-300 rounded-xl group',
+                  selectedYear === 'sapientia' ? 'bg-white/15 border border-white/20' : 'hover:bg-white/10'
+                ]"
+              >
+                <span class="mr-3">◇</span>
+                Sapientia Cabinet
+              </button>
+
+            </div>
           </div>
-          <div v-if="route.path === item.path" class="w-2 h-2 bg-white rounded-full"></div>
-        </router-link>
+          <router-link v-else :to="item.path" :class="[
+            'flex items-center justify-between p-3 font-medium text-white transition-all duration-300 rounded-xl group',
+            route.path === item.path ? 'bg-white/15 border border-white/20' : 'hover:bg-white/10'
+          ]" @click="isMenuOpen = false">
+            <div class="flex items-center">
+              <span class="mr-3 text-lg opacity-70">{{ item.icon }}</span>
+              <span>{{ item.name }}</span>
+            </div>
+            <div v-if="route.path === item.path" class="w-2 h-2 bg-white rounded-full"></div>
+          </router-link>
+        </template>
 
         <div class="space-y-1">
           <div class="flex items-center p-3 text-sm font-semibold tracking-wider uppercase text-white/50">
@@ -321,24 +398,79 @@ const closeMenusOnClickOutside = (event: MouseEvent) => {
         ]">
           <div class="flex items-center space-x-1">
             <div class="flex items-center p-1 border rounded-full backdrop-blur-xl border-white/10 bg-white/5">
-              <router-link v-for="(item, index) in navItems" :key="`desktop-${item.name}`" :to="item.path" :class="[
-                'relative px-4 py-2 text-sm font-medium transition-all duration-500 group rounded-full font-sans text-white/80 hover:text-white',
-                route.path === item.path ? 'text-white' : ''
-              ]" :style="{
-                  transitionDelay: isAnimating ? `${index * 100}ms` : '0ms',
-                  transform: isAnimating ? 'translateY(-2px)' : 'translateY(0)'
-                }">
-                <div class="flex items-center space-x-2">
-                  <span :class="[
-                    'text-xs transition-all duration-500 opacity-60 group-hover:opacity-100',
-                    route.path === item.path ? 'opacity-100 scale-110' : ''
-                  ]">{{ item.icon }}</span>
-                  <span class="tracking-wide">{{ item.name }}</span>
+              <template v-for="(item, index) in navItems" :key="`desktop-${item.name}`">
+                <div v-if="item.name === 'Organization'" class="relative org-dropdown-interactive-area">
+                  <button @click="toggleOrgDropdown" :class="[
+                    'relative px-4 py-2 text-sm font-medium transition-all duration-500 group rounded-full font-sans text-white/80 hover:text-white flex items-center space-x-2',
+                    isOrgPageActive ? 'text-white' : ''
+                  ]" :style="{
+                      transitionDelay: isAnimating ? `${index * 100}ms` : '0ms',
+                      transform: isAnimating ? 'translateY(-2px)' : 'translateY(0)'
+                    }">
+                    <div class="flex items-center space-x-2">
+                      <span :class="[
+                        'text-xs transition-all duration-500 opacity-60 group-hover:opacity-100',
+                        isOrgPageActive ? 'opacity-100 scale-110' : ''
+                      ]">{{ item.icon }}</span>
+                      <span class="tracking-wide">{{ item.name }}</span>
+                      <span :class="[
+                        'text-xs transition-all duration-300',
+                        isOrgDropdownOpen ? 'rotate-180' : 'rotate-0'
+                      ]">▼</span>
+                    </div>
+                    <div v-if="isOrgPageActive"
+                      class="absolute inset-0 border rounded-full bg-white/15 backdrop-blur-sm border-white/20 animate-dynamic-island">
+                    </div>
+                  </button>
+
+                  <!-- Organization Dropdown Menu -->
+                  <div v-if="isOrgDropdownOpen"
+                    class="absolute left-0 w-48 mt-2 overflow-hidden transition-all duration-300 origin-top border shadow-2xl top-full rounded-2xl backdrop-blur-2xl bg-black/90 border-white/20 animate-dropdown">
+                    <div class="p-2 space-y-1">
+                      <button @click="navigateToOrganization('kaustav')" :class="[
+                        'flex items-center w-full px-3 py-2 font-sans text-sm font-medium transition-all duration-300 rounded-xl group',
+                        selectedYear === 'kaustav' ? 'bg-white/15 text-white border border-white/20' : 'text-white/80 hover:bg-white/10 hover:text-white'
+                      ]">
+                        <span :class="[
+                          'mr-3 text-white/60 group-hover:text-white transition-all duration-300',
+                          selectedYear === 'kaustav' ? 'text-white' : ''
+                        ]">◆</span>
+                        Kaustav Cabinet
+                      </button>
+
+                      <button @click="navigateToOrganization('sapientia')" :class="[
+                        'flex items-center w-full px-3 py-2 font-sans text-sm font-medium transition-all duration-300 rounded-xl group',
+                        selectedYear === 'sapientia' ? 'bg-white/15 text-white border border-white/20' : 'text-white/80 hover:bg-white/10 hover:text-white'
+                      ]">
+                        <span :class="[
+                          'mr-3 text-white/60 group-hover:text-white transition-all duration-300',
+                          selectedYear === 'sapientia' ? 'text-white' : ''
+                        ]">◇</span>
+                        Sapientia Cabinet
+                      </button>
+
+                    </div>
+                  </div>
                 </div>
-                <div v-if="route.path === item.path"
-                  class="absolute inset-0 border rounded-full bg-white/15 backdrop-blur-sm border-white/20 animate-dynamic-island">
-                </div>
-              </router-link>
+                <router-link v-else :to="item.path" :class="[
+                  'relative px-4 py-2 text-sm font-medium transition-all duration-500 group rounded-full font-sans text-white/80 hover:text-white',
+                  route.path === item.path ? 'text-white' : ''
+                ]" :style="{
+                    transitionDelay: isAnimating ? `${index * 100}ms` : '0ms',
+                    transform: isAnimating ? 'translateY(-2px)' : 'translateY(0)'
+                  }">
+                  <div class="flex items-center space-x-2">
+                    <span :class="[
+                      'text-xs transition-all duration-500 opacity-60 group-hover:opacity-100',
+                      route.path === item.path ? 'opacity-100 scale-110' : ''
+                    ]">{{ item.icon }}</span>
+                    <span class="tracking-wide">{{ item.name }}</span>
+                  </div>
+                  <div v-if="route.path === item.path"
+                    class="absolute inset-0 border rounded-full bg-white/15 backdrop-blur-sm border-white/20 animate-dynamic-island">
+                  </div>
+                </router-link>
+              </template>
 
               <div class="relative other-dropdown-interactive-area">
                 <button @click="toggleOtherDropdown" :class="[
@@ -496,7 +628,65 @@ const closeMenusOnClickOutside = (event: MouseEvent) => {
 }
 
 .animate-dropdown {
-  animation: dropdown 0.3s ease-out;
+  animation: dropdown 0.2s ease-out;
+}
+
+.org-dropdown-container {
+  position: relative;
+}
+
+.org-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 200px;
+  margin-top: 8px;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  z-index: 50;
+  animation: dropdown 0.2s ease-out;
+}
+
+.org-dropdown-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  transition: all 0.3s ease;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.org-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.org-dropdown-item.active {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.dropdown-arrow {
+  transition: transform 0.3s ease;
 }
 
 .animate-slide-down {
