@@ -1,0 +1,118 @@
+import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
+import Home from "../views/Home.vue";
+import Contact from "../views/Contact.vue";
+import Timeline from "../views/Timeline.vue";
+import Login from "../views/Login.vue";
+import Puma from "../views/Puma.vue";
+import PumaKaustav from "../views/PumaKaustav.vue";
+import PumaSapientia from "../views/PumaSapientia.vue";
+import NotFound from "../views/404.vue";
+import profile from "../views/profile.vue";
+import photo from "../views/PhotoboxApp.vue";
+import News from "../views/admin/news.vue";
+import Event from "../views/admin/event.vue";
+import Member from "../views/admin/Member.vue";
+import Dashboard from "../views/admin/Dashboard.vue";
+import Organizations from "../views/admin/Organizations.vue";
+import Users from "../views/admin/Users.vue";
+import DivisionMembersPage from "../views/DivisionMember.vue";
+import About from "../views/About.vue";
+import Aspirations from "../views/Aspirations.vue";
+import Merch from "../views/Merch.vue";
+import VideoManagement from "../views/admin/VideoManagement.vue";
+import AformationRegistration from "../views/AformationRegistration.vue";
+import AformationVideos from "../views/AformationVideos.vue";
+
+const routes: Array<RouteRecordRaw> = [
+  { path: "/", name: "Home", component: Home },
+  { path: "/contact", name: "Contact", component: Contact },
+  { path: "/about", name: "About", component: About },
+  { path: "/timeline", name: "Timeline", component: Timeline },
+  { path: "/puma", name: "DivisionsList", component: Puma },
+  { path: "/puma-2024", name: "Puma2024", component: Puma },
+  { path: "/puma-kaustav", name: "PumaKaustav", component: PumaKaustav },
+  { path: "/puma-sapientia", name: "PumaSapientia", component: PumaSapientia },
+
+  {
+    path: "/division/:divisionName",
+    name: "DivisionMembers",
+    component: DivisionMembersPage,
+  },
+  { path: "/login", name: "Login", component: Login },
+  { path: "/profile", name: "profile", component: profile },
+  { path: "/photo", name: "photo", component: photo },
+  { path: "/aspirations", name: "aspirations", component: Aspirations },
+  { path: "/merch", name: "merch", component: Merch },
+  { path: "/admin/news", name: "newsad", component: News },
+  { path: "/admin/dashboard", name: "dashboard", component: Dashboard },
+  { path: "/admin/event", name: "event", component: Event },
+  {
+    path: "/admin/Organizations",
+    name: "Organization",
+    component: Organizations,
+  },
+  { path: "/admin/Users", name: "Users", component: Users },
+  { path: "/admin/Member", name: "Member", component: Member },
+  {
+    path: "/admin/videos",
+    name: "VideoManagement",
+    component: VideoManagement,
+  },
+  {
+    path: "/aformation/register",
+    name: "AformationRegistration",
+    component: AformationRegistration,
+  },
+  {
+    path: "/aformation/videos",
+    name: "AformationVideos",
+    component: AformationVideos,
+  },
+  { path: "/:pathMatch(.*)*", name: "NotFound", component: NotFound },
+];
+
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes,
+  scrollBehavior(_to, _from, savedPosition) {
+    return savedPosition || { top: 0 };
+  },
+});
+
+// Navigation guard to protect admin routes
+router.beforeEach((to, _from, next) => {
+  // Check if the route is an admin route
+  const isAdminRoute = to.path.startsWith("/admin");
+
+  if (isAdminRoute) {
+    // Check authentication
+    const token = localStorage.getItem("auth_token");
+    const userStr = localStorage.getItem("user");
+
+    if (!token || !userStr) {
+      // Not logged in, redirect to homepage
+      next("/");
+      return;
+    }
+
+    try {
+      const user = JSON.parse(userStr);
+
+      // Check if user has admin role
+      if (user.role !== "admin") {
+        // Not an admin, redirect to homepage
+        next("/");
+        return;
+      }
+    } catch (error) {
+      // Invalid user data, redirect to homepage
+      next("/");
+      return;
+    }
+  }
+
+  // Allow navigation
+  next();
+});
+
+export default router;
