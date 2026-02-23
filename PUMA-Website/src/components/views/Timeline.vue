@@ -2,6 +2,9 @@
 import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 import Navbar from '../Navbar.vue'; 
 import Footer from '../Footer.vue'; 
+import { useEvents } from '@/composables/useEvents';
+
+const { events: fetchedEvents, fetchEvents } = useEvents();
 
 const isScrolled = ref(false);
 const activeEvent = ref<number | null>(null);
@@ -12,100 +15,41 @@ const currentImageIndex = ref(0);
 
 const selectedFilter = ref<'all' | 'upcoming' | 'completed'>('all');
 
-const events = [
-    {
-        title: 'Regenetics 2024/2025', date: '1 September 2024',
-        description: 'The PUMA Informatics Regeneration is an event to recruit new members who are enthusiastic and committed to joining the organization.',
-        images: ['https://i.pinimg.com/736x/ff/e1/6c/ffe16ca3153ef85b42f5cfebbd69c758.jpg', '../public/sample1.jpg', '../public/sample2.jpg'], status: 'completed'
-    },
-    {
-        title: 'Unitics', date: '1 December 2024',
-        description: 'Unitics (Unity of Informatics) is organized to welcome new members to PUMA IT. The primary focus is to create an inclusive environment.',
-        images: ['https://i.pinimg.com/736x/ff/e1/6c/ffe16ca3153ef85b42f5cfebbd69c758.jpg', '../public/sample3.jpg', '../public/sample4.jpg'], status: 'completed'
-    },
-    {
-        title: '1st Aformation Midterm', date: '1 October 2024',
-        description: 'First midterm evaluation for new members focusing on organizational knowledge and technical skills development.',
-        images: ['https://i.pinimg.com/736x/ff/e1/6c/ffe16ca3153ef85b42f5cfebbd69c758.jpg', '../public/sample5.jpg', '../public/sample6.jpg'], status: 'completed'
-    },
-    {
-        title: 'PUMA Training', date: '1 October 2024',
-        description: 'Comprehensive training program for members covering technical skills and organizational knowledge.',
-        images: ['https://i.pinimg.com/736x/ff/e1/6c/ffe16ca3153ef85b42f5cfebbd69c758.jpg', '../public/sample7.jpg', '../public/sample8.jpg'], status: 'completed'
-    },
-    {
-        title: 'Brainstormics', date: '1 November 2024',
-        description: 'Collaborative brainstorming session to generate innovative ideas for upcoming projects and events.',
-        images: ['https://i.pinimg.com/736x/ff/e1/6c/ffe16ca3153ef85b42f5cfebbd69c758.jpg', '../public/sample10.jpg'], status: 'completed'
-    },
-    {
-        title: 'Guest Lecture', date: '1 December 2024',
-        description: 'Industry professionals sharing insights and expertise on current trends in information technology.',
-        images: ['https://i.pinimg.com/736x/ff/e1/6c/ffe16ca3153ef85b42f5cfebbd69c758.jpg', '../public/sample12.jpg'], status: 'completed'
-    },
-    {
-        title: '2nd Aformation Final Exam', date: '1 December 2024',
-        description: 'End-of-semester evaluation assessing progress and knowledge acquisition of new members.',
-        images: ['https://i.pinimg.com/736x/ff/e1/6c/ffe16ca3153ef85b42f5cfebbd69c758.jpg', '../public/sample14.jpg'], status: 'completed'
-    },
-    {
-        title: 'Temu Alumni', date: '1 February 2025',
-        description: 'Networking event connecting current members with alumni to share experiences and career insights.',
-        images: ['https://i.pinimg.com/736x/ff/e1/6c/ffe16ca3153ef85b42f5cfebbd69c758.jpg', '../public/sample16.jpg'], status: 'completed'
-    },
-    {
-        title: '3rd Aformation Midterm', date: '1 February 2025',
-        description: 'Midterm evaluation focusing on project development and leadership skills assessment.',
-        images: ['https://i.pinimg.com/736x/ff/e1/6c/ffe16ca3153ef85b42f5cfebbd69c758.jpg', '../public/sample18.jpg'], status: 'completed'
-    },
-    {
-        title: 'Informatics Connect', date: '1 March 2025',
-        description: 'Industry networking event connecting students with potential employers and industry partners.',
-        images: ['https://i.pinimg.com/736x/ff/e1/6c/ffe16ca3153ef85b42f5cfebbd69c758.jpg', '../public/sample20.jpg'], status: 'completed'
-    },
-    {
-        title: '4th Aformation Final Exam', date: '1 May 2025',
-        description: 'Final comprehensive evaluation of member progress throughout the academic year.',
-        images: ['https://i.pinimg.com/736x/ff/e1/6c/ffe16ca3153ef85b42f5cfebbd69c758.jpg', '../public/sample22.jpg'], status: 'completed'
-    },
-    {
-        title: 'Preschotics Beasiswa', date: '1 May 2025',
-        description: 'Scholarship preparation program helping students apply for prestigious educational opportunities.',
-        images: ['https://i.pinimg.com/736x/ff/e1/6c/ffe16ca3153ef85b42f5cfebbd69c758.jpg', '../public/sample22.jpg'], status: 'completed'
-    },
-    {
-        title: 'Company Visit', date: '1 June 2025',
-        description: 'Organized visits to leading tech companies to observe professional work environments.',
-        images: ['https://i.pinimg.com/736x/ff/e1/6c/ffe16ca3153ef85b42f5cfebbd69c758.jpg', '../public/sample22.jpg'], status: 'upcoming'
-    },
-    {
-        title: 'Elevate Informatics Festival', date: '1 July 2025',
-        description: 'Annual celebration showcasing student projects and achievements in information technology.',
-        images: ['https://i.pinimg.com/736x/ff/e1/6c/ffe16ca3153ef85b42f5cfebbd69c758.jpg', '../public/sample22.jpg'], status: 'upcoming'
-    },
-    {
-        title: 'Regenetics', date: '1 August 2025',
-        description: 'Recruitment event for the next academic year welcoming new potential organization members.',
-        images: ['https://i.pinimg.com/736x/ff/e1/6c/ffe16ca3153ef85b42f5cfebbd69c758.jpg', '../public/sample22.jpg'], status: 'upcoming'
-    },
-    {
-        title: 'Inforuum', date: '1 August 2025',
-        description: 'Open forum discussion addressing current challenges and future directions in informatics.',
-        images: ['https://i.pinimg.com/736x/ff/e1/6c/ffe16ca3153ef85b42f5cfebbd69c758.jpg', '../public/sample22.jpg'], status: 'upcoming'
-    }
-];
+// Helper to normalize image URLs
+const getImageUrl = (path: string) => {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    const baseUrl = 'http://localhost:8000'; // Match backend URL
+    if (path.startsWith('/storage')) return `${baseUrl}${path}`;
+    if (path.startsWith('storage')) return `${baseUrl}/${path}`;
+    return `${baseUrl}/storage/${path}`;
+};
 
 const timelineEvents = computed(() => {
-    let filteredEvents = events;
+    // Clone events to avoid mutating source
+    let filteredEvents = [...fetchedEvents.value];
+    
     if (selectedFilter.value === 'completed') {
-        filteredEvents = events.filter(event => event.status === 'completed');
+        filteredEvents = filteredEvents.filter(event => event.status === 'completed');
     } else if (selectedFilter.value === 'upcoming') {
-        filteredEvents = events.filter(event => event.status === 'upcoming');
+        filteredEvents = filteredEvents.filter(event => event.status === 'upcoming');
     }
+    
+    // Sort by date (ascending for timeline usually makes sense, or descending? 
+    // The original hardcoded had mixed dates but seemed chronological. 
+    // Let's sort ascending for a timeline flow)
     filteredEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    
     return filteredEvents.map((event, index) => ({
         ...event,
-        id: index + 1,
+        // Ensure image paths are full URLs
+        images: event.images ? event.images.map(img => getImageUrl(img)) : [],
+        // Fallback for single image_path if images array is empty/missing
+        // (assuming backend might have image_path or images)
+        displayImages: (Array.isArray(event.images) && event.images.length > 0) 
+            ? event.images.map(img => getImageUrl(img)) 
+            : (event.image_path ? [getImageUrl(event.image_path)] : ['/puma-bag.JPG']),
+        id: event.id || index + 1,
         month: new Date(event.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
     }));
 });
@@ -126,6 +70,7 @@ const lastCompletedEventDetails = computed(() => {
 });
 
 
+
 const setFilter = (filter: 'all' | 'upcoming' | 'completed') => {
     selectedFilter.value = filter;
     activeEvent.value = null; 
@@ -143,7 +88,8 @@ const updateNumCols = () => {
     else { numCols.value = 1; }
 };
 
-onMounted(() => {
+onMounted(async () => {
+    await fetchEvents();
     window.addEventListener('scroll', handleScroll);
     updateNumCols();
     window.addEventListener('resize', updateNumCols);
@@ -214,23 +160,23 @@ const closeModal = () => {
 };
 
 const nextImage = () => {
-    if (selectedEvent.value && selectedEvent.value.images.length > 1) {
-        currentImageIndex.value = (currentImageIndex.value + 1) % selectedEvent.value.images.length;
+    if (selectedEvent.value && selectedEvent.value.displayImages.length > 1) {
+        currentImageIndex.value = (currentImageIndex.value + 1) % selectedEvent.value.displayImages.length;
     }
 };
 
 const prevImage = () => {
-    if (selectedEvent.value && selectedEvent.value.images.length > 1) {
+    if (selectedEvent.value && selectedEvent.value.displayImages.length > 1) {
         currentImageIndex.value = (currentImageIndex.value === 0)
-            ? selectedEvent.value.images.length - 1
+            ? selectedEvent.value.displayImages.length - 1
             : currentImageIndex.value - 1;
     }
 };
 const goToImage = (index: number) => { currentImageIndex.value = index; };
 
-const allEventsCount = computed(() => events.length);
-const overallCompletedEventsCount = computed(() => events.filter(e => e.status === 'completed').length);
-const overallUpcomingEventsCount = computed(() => events.filter(e => e.status === 'upcoming').length);
+const allEventsCount = computed(() => fetchedEvents.value.length);
+const overallCompletedEventsCount = computed(() => fetchedEvents.value.filter(e => e.status === 'completed').length);
+const overallUpcomingEventsCount = computed(() => fetchedEvents.value.filter(e => e.status === 'upcoming').length);
 
 const getStatusIcon = (status: string) => status === 'completed' ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />` : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />`;
 const getStatusColor = (status: string) => status === 'completed' ? 'text-gray-700' : 'text-gray-500';
@@ -469,18 +415,18 @@ const getActiveCardBorder = (status: string) => status === 'completed' ? 'border
                             <h3 class="mb-2 text-sm font-semibold tracking-wider text-gray-500 uppercase">Case Description:</h3>
                             <p class="text-base leading-relaxed text-gray-700">{{ selectedEvent?.description }}</p>
                         </div>
-                        <div v-if="selectedEvent?.images && selectedEvent.images.length > 0" class="mb-6">
+                        <div v-if="selectedEvent?.displayImages && selectedEvent.displayImages.length > 0" class="mb-6">
                             <h3 class="mb-3 text-sm font-semibold tracking-wider text-gray-500 uppercase">Exhibits:</h3>
                             <div class="relative mb-3 overflow-hidden bg-gray-300 border border-gray-400 rounded shadow-md">
-                                <img :src="selectedEvent.images[currentImageIndex]" :alt="`${selectedEvent.title} - Image ${currentImageIndex + 1}`" class="object-contain w-full h-80 image-transition">
-                                <div v-if="selectedEvent.images.length > 1" class="absolute inset-y-0 left-0 right-0 flex items-center justify-between p-2">
+                                <img :src="selectedEvent.displayImages[currentImageIndex]" :alt="`${selectedEvent.title} - Image ${currentImageIndex + 1}`" class="object-contain w-full h-80 image-transition">
+                                <div v-if="selectedEvent.displayImages.length > 1" class="absolute inset-y-0 left-0 right-0 flex items-center justify-between p-2">
                                     <button @click="prevImage" class="p-1.5 text-white transition-colors duration-200 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
                                     <button @click="nextImage" class="p-1.5 text-white transition-colors duration-200 rounded-full bg-black/40 backdrop-blur-sm hover:bg-black/60"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg></button>
                                 </div>
-                                <div v-if="selectedEvent.images.length > 1" class="absolute px-2 py-0.5 text-xs font-medium text-white rounded-full top-2 right-2 bg-black/40 backdrop-blur-sm">{{ currentImageIndex + 1 }} / {{ selectedEvent.images.length }}</div>
+                                <div v-if="selectedEvent.displayImages.length > 1" class="absolute px-2 py-0.5 text-xs font-medium text-white rounded-full top-2 right-2 bg-black/40 backdrop-blur-sm">{{ currentImageIndex + 1 }} / {{ selectedEvent.displayImages.length }}</div>
                             </div>
-                            <div v-if="selectedEvent.images.length > 1" class="flex pb-1 space-x-2 overflow-x-auto styled-scrollbar-thin">
-                                <button v-for="(image, index) in selectedEvent.images" :key="index" @click="goToImage(index)" class="flex-shrink-0 w-16 h-16 overflow-hidden transition-all duration-200 border-2 rounded shadow-sm hover:opacity-80" :class="{ 'border-gray-700 ring-1 ring-gray-500': currentImageIndex === index, 'border-gray-300 hover:border-gray-400': currentImageIndex !== index }">
+                            <div v-if="selectedEvent.displayImages.length > 1" class="flex pb-1 space-x-2 overflow-x-auto styled-scrollbar-thin">
+                                <button v-for="(image, index) in selectedEvent.displayImages" :key="index" @click="goToImage(index)" class="flex-shrink-0 w-16 h-16 overflow-hidden transition-all duration-200 border-2 rounded shadow-sm hover:opacity-80" :class="{ 'border-gray-700 ring-1 ring-gray-500': currentImageIndex === index, 'border-gray-300 hover:border-gray-400': currentImageIndex !== index }">
                                     <img :src="image" :alt="`Thumbnail ${index + 1}`" class="object-cover w-full h-full">
                                 </button>
                             </div>
@@ -499,7 +445,7 @@ const getActiveCardBorder = (status: string) => status === 'completed' ? 'border
                             </div>
                             <div class="p-3 border rounded bg-slate-200/60 border-gray-300/80">
                                 <h4 class="mb-1 text-xs font-semibold tracking-wider text-gray-500 uppercase">Exhibit Count</h4>
-                                <p class="text-sm text-gray-700">{{ selectedEvent?.images?.length || 0 }} items</p>
+                                <p class="text-sm text-gray-700">{{ selectedEvent?.displayImages?.length || 0 }} items</p>
                             </div>
                         </div>
                     </div>

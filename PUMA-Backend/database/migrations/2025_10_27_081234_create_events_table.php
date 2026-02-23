@@ -19,7 +19,7 @@ return new class extends Migration
             $table->datetime('event_date_end')->nullable();
             $table->string('location')->nullable();
             $table->foreignId('cabinet_id')->nullable()->constrained('cabinets')->onDelete('cascade');
-            $table->enum('status', ['completed', 'upcoming', 'cancelled'])->default('upcoming');
+            $table->enum('status', ['planned', 'upcoming', 'completed', 'cancelled'])->default('upcoming');
             $table->text('content')->nullable(); // Full article content
             $table->string('category')->nullable(); // e.g., 'recruitment', 'training', 'competition'
             $table->integer('views')->default(0);

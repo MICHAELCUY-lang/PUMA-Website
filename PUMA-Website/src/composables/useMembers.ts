@@ -19,6 +19,8 @@ export interface Member {
   instagram?: string;
   linkedin?: string;
   personal_description?: string;
+  display_order?: number;
+  is_visible?: boolean;
 }
 
 interface ApiResponse {
@@ -74,22 +76,51 @@ export function useMembers() {
   };
 
   // Create new member
-  const createMember = async (memberData: Partial<Member>) => {
+  const createMember = async (memberData: Partial<Member>, avatarFile?: File | null) => {
     loading.value = true;
     error.value = null;
 
+    console.log('Creating member with data:', memberData);
+    console.log('Avatar file:', avatarFile);
+
     try {
+      // Build FormData for multipart/form-data submission
+      const formData = new FormData();
+
+      // Append all member fields
+      if (memberData.name) formData.append('name', memberData.name);
+      if (memberData.email) formData.append('email', memberData.email);
+      if (memberData.batch) formData.append('batch', memberData.batch);
+      if (memberData.position) formData.append('position', memberData.position);
+      if (memberData.user_id) formData.append('user_id', memberData.user_id.toString());
+      if (memberData.cabinet_id) formData.append('cabinet_id', memberData.cabinet_id.toString());
+      if (memberData.division_id) formData.append('division_id', memberData.division_id.toString());
+
+      // Append avatar file if provided
+      if (avatarFile) {
+        formData.append('avatar', avatarFile);
+        console.log('Appended avatar file to FormData');
+      }
+
       const response = await axios.post<ApiResponse>(
         `${API_BASE_URL}/members`,
-        memberData
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
       );
 
       if (response.data.success) {
+        console.log('Member created successfully:', response.data.data);
         return response.data.data as Member;
       }
     } catch (err: any) {
+      console.error('Error creating member:', err);
+      console.error('Error response:', err.response?.data);
+      console.error('Error status:', err.response?.status);
       error.value = err.response?.data?.message || "Failed to create member";
-      console.error("Error creating member:", err);
       throw err;
     } finally {
       loading.value = false;
@@ -143,6 +174,87 @@ export function useMembers() {
     }
   };
 
+  // Reorder members
+  const reorderMembers = async (memberOrders: { id: number; order: number }[]) => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const response = await axios.post<ApiResponse>(
+        `${API_BASE_URL}/members/reorder`,
+        { members: memberOrders }
+      );
+
+      if (response.data.success) {
+        return true;
+      }
+    } catch (err: any) {
+      error.value = err.response?.data?.message || "Failed to reorder members";
+      console.error("Error reordering members:", err);
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  // Toggle member visibility
+  const toggleMemberVisibility = async (id: number) => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const response = await axios.patch<ApiResponse>(
+        `${API_BASE_URL}/members/${id}/visibility`
+      );
+
+      if (response.data.success) {
+        // Update local member if present
+        const memberIndex = members.value.findIndex((m) => m.id === id);
+        if (memberIndex !== -1) {
+          members.value[memberIndex].is_visible = !members.value[memberIndex].is_visible;
+        }
+        return true;
+      }
+    } catch (err: any) {
+      error.value = err.response?.data?.message || "Failed to toggle visibility";
+      console.error("Error toggling visibility:", err);
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  // Upload member photo
+  const uploadMemberPhoto = async (id: number, file: File) => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const formData = new FormData();
+      formData.append("photo", file);
+
+      const response = await axios.post<ApiResponse>(
+        `${API_BASE_URL}/members/${id}/photo`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (response.data.success) {
+        return response.data.data;
+      }
+    } catch (err: any) {
+      error.value = err.response?.data?.message || "Failed to upload photo";
+      console.error("Error uploading photo:", err);
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
   return {
     members,
     member,
@@ -153,5 +265,8 @@ export function useMembers() {
     createMember,
     updateMember,
     deleteMember,
+    reorderMembers,
+    toggleMemberVisibility,
+    uploadMemberPhoto,
   };
 }

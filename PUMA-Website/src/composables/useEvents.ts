@@ -123,6 +123,15 @@ export const useEvents = () => {
     loading.value = true;
     error.value = null;
 
+    console.log('Creating event...');
+    if (eventData instanceof FormData) {
+      for (const [key, value] of eventData.entries()) {
+        console.log(`FormData: ${key} =`, value);
+      }
+    } else {
+      console.log('Event Data:', eventData);
+    }
+
     try {
       const headers =
         eventData instanceof FormData
@@ -136,11 +145,14 @@ export const useEvents = () => {
       );
 
       if (response.data.success) {
+        console.log('Event created successfully:', response.data.data);
         return response.data.data as Event;
       }
     } catch (err: any) {
+      console.error('Error creating event:', err);
+      console.error('Error response:', err.response?.data);
+      console.error('Error status:', err.response?.status);
       error.value = err.response?.data?.message || "Failed to create event";
-      console.error("Error creating event:", err);
       throw err;
     } finally {
       loading.value = false;
@@ -190,19 +202,23 @@ export const useEvents = () => {
     loading.value = true;
     error.value = null;
 
+    console.log('Deleting event with ID:', id);
+
     try {
       const response = await axios.delete<ApiResponse>(
         `${API_BASE_URL}/events/${id}`
       );
 
       if (response.data.success) {
+        console.log('Event deleted successfully');
         // Remove from local events array if present
         events.value = events.value.filter((e) => e.id !== id);
         return true;
       }
     } catch (err: any) {
+      console.error('Error deleting event:', err);
+      console.error('Error response:', err.response?.data);
       error.value = err.response?.data?.message || "Failed to delete event";
-      console.error("Error deleting event:", err);
       throw err;
     } finally {
       loading.value = false;

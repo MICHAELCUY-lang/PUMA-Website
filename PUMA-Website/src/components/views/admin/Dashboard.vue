@@ -1,5 +1,72 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue';
 import AdminLayout from './Layout.vue';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+
+interface Stats {
+    totalMembers: number;
+    activeMembers: number;
+    totalDivisions: number;
+    totalCabinets: number;
+    totalUIContent: number;
+    activeBanners: number;
+    totalEvents: number;
+    totalNews: number;
+}
+
+const stats = ref<Stats>({
+    totalMembers: 0,
+    activeMembers: 0,
+    totalDivisions: 0,
+    totalCabinets: 0,
+    totalUIContent: 0,
+    activeBanners: 0,
+    totalEvents: 0,
+    totalNews: 0,
+});
+
+const loading = ref(true);
+
+const fetchDashboardStats = async () => {
+    loading.value = true;
+    try {
+        // Fetch all data in parallel
+        const [membersRes, divisionsRes, cabinetsRes, uiContentRes, bannersRes] = await Promise.all([
+            axios.get(`${API_URL}/members`),
+            axios.get(`${API_URL}/divisions`),
+            axios.get(`${API_URL}/cabinets`),
+            axios.get(`${API_URL}/ui-content`),
+            axios.get(`${API_URL}/banners`),
+        ]);
+
+        const members = membersRes.data.data || membersRes.data;
+        const divisions = divisionsRes.data.data || divisionsRes.data;
+        const cabinets = cabinetsRes.data.data || cabinetsRes.data;
+        const uiContent = uiContentRes.data.data || uiContentRes.data;
+        const banners = bannersRes.data.data || bannersRes.data;
+
+        stats.value = {
+            totalMembers: members.length,
+            activeMembers: members.filter((m: any) => m.is_visible).length,
+            totalDivisions: divisions.length,
+            totalCabinets: cabinets.length,
+            totalUIContent: uiContent.length,
+            activeBanners: banners.filter((b: any) => b.is_active).length,
+            totalEvents: 0, // Will be implemented when events API is ready
+            totalNews: 0, // Will be implemented when news API is ready
+        };
+    } catch (error) {
+        console.error('Error fetching dashboard stats:', error);
+    } finally {
+        loading.value = false;
+    }
+};
+
+onMounted(() => {
+    fetchDashboardStats();
+});
 
 defineOptions({
     name: 'Dashboard',
@@ -11,212 +78,230 @@ defineOptions({
         <div class="min-h-screen text-gray-800 bg-white">
             <div class="flex">
                 <main class="flex-1 p-6">
+                    <!-- Header -->
                     <div class="mb-8">
-                        <h1 class="mb-2 text-2xl font-bold">Lorem Ipsum</h1>
-                        <p class="text-gray-600">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                        <h1 class="mb-2 text-2xl font-bold">Dashboard Overview</h1>
+                        <p class="text-gray-600">Welcome to PUMA Admin Control System</p>
                     </div>
 
-                    <div class="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
-                        <div class="p-6 transition-shadow bg-white border border-gray-200 shadow-sm rounded-2xl hover:shadow-md">
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-sm font-medium text-gray-500">Lorem Ipsum</h3>
-                                <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">+12.5%</span>
-                            </div>
-                            <div class="flex items-baseline">
-                                <span class="text-3xl font-bold">24,892</span>
-                                <span class="ml-2 text-sm font-medium text-green-500">↑ 840</span>
-                            </div>
-                        </div>
-
-                        <div class="p-6 transition-shadow bg-white border border-gray-200 shadow-sm rounded-2xl hover:shadow-md">
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-sm font-medium text-gray-500">Lorem Ipsum</h3>
-                                <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">+8.2%</span>
-                            </div>
-                            <div class="flex items-baseline">
-                                <span class="text-3xl font-bold">1,432</span>
-                                <span class="ml-2 text-sm font-medium text-green-500">↑ 145</span>
-                            </div>
-                        </div>
-
-                        <div class="p-6 transition-shadow bg-white border border-gray-200 shadow-sm rounded-2xl hover:shadow-md">
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-sm font-medium text-gray-500">Lorem Ipsum</h3>
-                                <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">-2.4%</span>
-                            </div>
-                            <div class="flex items-baseline">
-                                <span class="text-3xl font-bold">64,572</span>
-                                <span class="ml-2 text-sm font-medium text-red-500">↓ 1,296</span>
-                            </div>
-                        </div>
-
-                        <div class="p-6 transition-shadow bg-white border border-gray-200 shadow-sm rounded-2xl hover:shadow-md">
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-sm font-medium text-gray-500">Lorem Ipsum</h3>
-                                <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">+1.8%</span>
-                            </div>
-                            <div class="flex items-baseline">
-                                <span class="text-3xl font-bold">3.6%</span>
-                                <span class="ml-2 text-sm font-medium text-green-500">↑ 0.3%</span>
-                            </div>
+                    <!-- Loading State -->
+                    <div v-if="loading" class="flex items-center justify-center py-20">
+                        <div class="relative">
+                            <div class="w-16 h-16 border-4 border-gray-200 rounded-full"></div>
+                            <div class="absolute top-0 left-0 w-16 h-16 border-4 border-black rounded-full animate-spin border-t-transparent"></div>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 gap-6 mb-8 lg:grid-cols-2">
-                        <div class="p-6 bg-white border border-gray-200 shadow-sm rounded-2xl">
-                            <div class="flex items-center justify-between mb-6">
-                                <h3 class="font-medium">Lorem Ipsum</h3>
-                                <div class="flex space-x-2">
-                                    <button class="px-3 py-1 text-xs text-white bg-black rounded-full">Lorem</button>
-                                    <button class="px-3 py-1 text-xs bg-gray-100 rounded-full">Ipsum</button>
-                                    <button class="px-3 py-1 text-xs bg-gray-100 rounded-full">Dolor</button>
-                                </div>
+                    <!-- Stats Grid -->
+                    <div v-else class="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
+                        <!-- Total Members -->
+                        <div class="p-6 transition-shadow bg-white border border-gray-200 shadow-sm rounded-2xl hover:shadow-md">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-sm font-medium text-gray-500">Total Members</h3>
+                                <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
                             </div>
-                            <div class="flex items-end h-64 space-x-2">
-                                <div class="w-8 h-20 bg-gray-200 rounded-t-lg"></div>
-                                <div class="w-8 h-32 bg-gray-300 rounded-t-lg"></div>
-                                <div class="w-8 h-24 bg-gray-200 rounded-t-lg"></div>
-                                <div class="w-8 h-40 bg-gray-300 rounded-t-lg"></div>
-                                <div class="w-8 h-48 bg-gray-200 rounded-t-lg"></div>
-                                <div class="w-8 h-56 bg-black rounded-t-lg"></div>
-                                <div class="w-8 bg-gray-200 rounded-t-lg h-36"></div>
+                            <div class="flex items-baseline">
+                                <span class="text-3xl font-bold">{{ stats.totalMembers }}</span>
+                                <span class="ml-2 text-sm text-gray-500">members</span>
                             </div>
                         </div>
 
-                        <div class="p-6 bg-white border border-gray-200 shadow-sm rounded-2xl">
-                            <div class="flex items-center justify-between mb-6">
-                                <h3 class="font-medium">Lorem Ipsum</h3>
-                                <div class="flex items-center space-x-1">
-                                    <span class="w-3 h-3 bg-black rounded-full"></span>
-                                    <span class="mr-3 text-xs text-gray-500">Lorem</span>
-                                    <span class="w-3 h-3 bg-gray-300 rounded-full"></span>
-                                    <span class="text-xs text-gray-500">Ipsum</span>
-                                </div>
+                        <!-- Active Members -->
+                        <div class="p-6 transition-shadow bg-white border border-gray-200 shadow-sm rounded-2xl hover:shadow-md">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-sm font-medium text-gray-500">Active Members</h3>
+                                <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
                             </div>
-                            <div class="relative h-64">
-                                <div class="absolute inset-0 flex items-center justify-center">
-                                    <div class="relative w-40 h-40 overflow-hidden border-8 border-black rounded-full">
-                                        <div class="absolute top-0 left-0 w-1/2 h-full bg-gray-300"></div>
-                                    </div>
-                                    <div class="absolute text-center">
-                                        <div class="text-3xl font-bold">62%</div>
-                                        <div class="text-xs text-gray-500">Lorem Ipsum</div>
-                                    </div>
-                                </div>
+                            <div class="flex items-baseline">
+                                <span class="text-3xl font-bold">{{ stats.activeMembers }}</span>
+                                <span class="ml-2 text-sm text-gray-500">visible</span>
+                            </div>
+                        </div>
+
+                        <!-- Divisions -->
+                        <div class="p-6 transition-shadow bg-white border border-gray-200 shadow-sm rounded-2xl hover:shadow-md">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-sm font-medium text-gray-500">Divisions</h3>
+                                <svg class="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                </svg>
+                            </div>
+                            <div class="flex items-baseline">
+                                <span class="text-3xl font-bold">{{ stats.totalDivisions }}</span>
+                                <span class="ml-2 text-sm text-gray-500">divisions</span>
+                            </div>
+                        </div>
+
+                        <!-- Cabinets -->
+                        <div class="p-6 transition-shadow bg-white border border-gray-200 shadow-sm rounded-2xl hover:shadow-md">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-sm font-medium text-gray-500">Cabinets</h3>
+                                <svg class="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <div class="flex items-baseline">
+                                <span class="text-3xl font-bold">{{ stats.totalCabinets }}</span>
+                                <span class="ml-2 text-sm text-gray-500">cabinets</span>
+                            </div>
+                        </div>
+
+                        <!-- UI Content -->
+                        <div class="p-6 transition-shadow bg-white border border-gray-200 shadow-sm rounded-2xl hover:shadow-md">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-sm font-medium text-gray-500">UI Content</h3>
+                                <svg class="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                                </svg>
+                            </div>
+                            <div class="flex items-baseline">
+                                <span class="text-3xl font-bold">{{ stats.totalUIContent }}</span>
+                                <span class="ml-2 text-sm text-gray-500">items</span>
+                            </div>
+                        </div>
+
+                        <!-- Active Banners -->
+                        <div class="p-6 transition-shadow bg-white border border-gray-200 shadow-sm rounded-2xl hover:shadow-md">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-sm font-medium text-gray-500">Active Banners</h3>
+                                <svg class="w-8 h-8 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <div class="flex items-baseline">
+                                <span class="text-3xl font-bold">{{ stats.activeBanners }}</span>
+                                <span class="ml-2 text-sm text-gray-500">active</span>
+                            </div>
+                        </div>
+
+                        <!-- Events (Placeholder) -->
+                        <div class="p-6 transition-shadow bg-white border border-gray-200 shadow-sm rounded-2xl hover:shadow-md opacity-60">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-sm font-medium text-gray-500">Events</h3>
+                                <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <div class="flex items-baseline">
+                                <span class="text-3xl font-bold">{{ stats.totalEvents }}</span>
+                                <span class="ml-2 text-sm text-gray-500">coming soon</span>
+                            </div>
+                        </div>
+
+                        <!-- News (Placeholder) -->
+                        <div class="p-6 transition-shadow bg-white border border-gray-200 shadow-sm rounded-2xl hover:shadow-md opacity-60">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-sm font-medium text-gray-500">News Articles</h3>
+                                <svg class="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                                </svg>
+                            </div>
+                            <div class="flex items-baseline">
+                                <span class="text-3xl font-bold">{{ stats.totalNews }}</span>
+                                <span class="ml-2 text-sm text-gray-500">coming soon</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                        <div class="p-6 bg-white border border-gray-200 shadow-sm rounded-2xl lg:col-span-2">
-                            <div class="flex items-center justify-between mb-6">
-                                <h3 class="font-medium">Lorem Ipsum</h3>
-                                <button class="text-sm text-gray-500 hover:text-black">Lorem</button>
-                            </div>
+                    <!-- Quick Actions -->
+                    <div class="p-6 mb-8 bg-white border border-gray-200 shadow-sm rounded-2xl">
+                        <h3 class="mb-4 font-medium">Quick Actions</h3>
+                        <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+                            <router-link to="/admin/member" class="flex items-center justify-center px-4 py-3 text-sm font-medium text-white transition-colors bg-black rounded-lg hover:bg-gray-800">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                                Add Member
+                            </router-link>
+                            <router-link to="/admin/ui-content" class="flex items-center justify-center px-4 py-3 text-sm font-medium transition-colors bg-gray-100 rounded-lg hover:bg-gray-200">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                Manage Content
+                            </router-link>
+                            <router-link to="/admin/banners" class="flex items-center justify-center px-4 py-3 text-sm font-medium transition-colors bg-gray-100 rounded-lg hover:bg-gray-200">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                Upload Banner
+                            </router-link>
+                            <button @click="fetchDashboardStats" class="flex items-center justify-center px-4 py-3 text-sm font-medium transition-colors bg-gray-100 rounded-lg hover:bg-gray-200">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Refresh Data
+                            </button>
+                        </div>
+                    </div>
 
-                            <div class="space-y-4">
-                                <div class="flex items-start space-x-4">
-                                    <div class="flex items-center justify-center flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full">
-                                        <svg class="w-5 h-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
-                                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                                            <path fill-rule="evenodd"
-                                                d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                                                clip-rule="evenodd" />
-                                        </svg>
-                                    </div>
-                                    <div class="flex-1">
-                                        <div class="flex items-center justify-between">
-                                            <h4 class="text-sm font-medium">Lorem Ipsum</h4>
-                                            <span class="text-xs text-gray-500">2 mins ago</span>
-                                        </div>
-                                        <p class="text-sm text-gray-600">Lorem ipsum dolor sit amet.</p>
-                                    </div>
+                    <!-- System Info -->
+                    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                        <div class="p-6 bg-white border border-gray-200 shadow-sm rounded-2xl">
+                            <h3 class="mb-4 font-medium">System Status</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Database</span>
+                                    <span class="flex items-center text-sm font-medium text-green-600">
+                                        <span class="w-2 h-2 mr-2 bg-green-500 rounded-full"></span>
+                                        Connected
+                                    </span>
                                 </div>
-
-                                <div class="flex items-start space-x-4">
-                                    <div class="flex items-center justify-center flex-shrink-0 w-10 h-10 bg-green-100 rounded-full">
-                                        <svg class="w-5 h-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd"
-                                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                                clip-rule="evenodd" />
-                                        </svg>
-                                    </div>
-                                    <div class="flex-1">
-                                        <div class="flex items-center justify-between">
-                                            <h4 class="text-sm font-medium">Lorem Ipsum</h4>
-                                            <span class="text-xs text-gray-500">10 mins ago</span>
-                                        </div>
-                                        <p class="text-sm text-gray-600">Lorem ipsum dolor sit amet.</p>
-                                    </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">API Server</span>
+                                    <span class="flex items-center text-sm font-medium text-green-600">
+                                        <span class="w-2 h-2 mr-2 bg-green-500 rounded-full"></span>
+                                        Running
+                                    </span>
                                 </div>
-
-                                <div class="flex items-start space-x-4">
-                                    <div class="flex items-center justify-center flex-shrink-0 w-10 h-10 bg-purple-100 rounded-full">
-                                        <svg class="w-5 h-5 text-purple-600" viewBox="0 0 20 20" fill="currentColor">
-                                            <path
-                                                d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                                        </svg>
-                                    </div>
-                                    <div class="flex-1">
-                                        <div class="flex items-center justify-between">
-                                            <h4 class="text-sm font-medium">Lorem Ipsum</h4>
-                                            <span class="text-xs text-gray-500">1 hour ago</span>
-                                        </div>
-                                        <p class="text-sm text-gray-600">Lorem ipsum dolor sit amet.</p>
-                                    </div>
-                                </div>
-
-                                <div class="flex items-start space-x-4">
-                                    <div class="flex items-center justify-center flex-shrink-0 w-10 h-10 bg-yellow-100 rounded-full">
-                                        <svg class="w-5 h-5 text-yellow-600" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd"
-                                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                                                clip-rule="evenodd" />
-                                        </svg>
-                                    </div>
-                                    <div class="flex-1">
-                                        <div class="flex items-center justify-between">
-                                            <h4 class="text-sm font-medium">Lorem Ipsum</h4>
-                                            <span class="text-xs text-gray-500">2 hours ago</span>
-                                        </div>
-                                        <p class="text-sm text-gray-600">Lorem ipsum dolor sit amet.</p>
-                                    </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Storage</span>
+                                    <span class="flex items-center text-sm font-medium text-green-600">
+                                        <span class="w-2 h-2 mr-2 bg-green-500 rounded-full"></span>
+                                        Available
+                                    </span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="p-6 bg-white border border-gray-200 shadow-sm rounded-2xl">
-                            <div class="flex items-center justify-between mb-6">
-                                <h3 class="font-medium">Lorem Ipsum</h3>
-                                <button class="text-sm text-gray-500 hover:text-black">Lorem</button>
-                            </div>
-
-                            <div class="space-y-4">
-                                <div class="p-4 border border-gray-100 rounded-lg bg-gray-50">
-                                    <div class="flex items-center mb-2 space-x-2">
-                                        <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                        <span class="text-xs text-gray-500">Lorem</span>
+                            <h3 class="mb-4 font-medium">Recent Activity</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-start">
+                                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 mr-3 bg-blue-100 rounded-full">
+                                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                        </svg>
                                     </div>
-                                    <h4 class="mb-1 text-sm font-medium">Lorem Ipsum</h4>
-                                    <p class="text-xs text-gray-500">Lorem ipsum dolor sit amet.</p>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium">{{ stats.totalMembers }} members loaded</p>
+                                        <p class="text-xs text-gray-500">Database synchronized</p>
+                                    </div>
                                 </div>
-
-                                <div class="p-4 border border-gray-100 rounded-lg bg-gray-50">
-                                    <div class="flex items-center mb-2 space-x-2">
-                                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                                        <span class="text-xs text-gray-500">Lorem</span>
+                                <div class="flex items-start">
+                                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 mr-3 bg-purple-100 rounded-full">
+                                        <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                        </svg>
                                     </div>
-                                    <h4 class="mb-1 text-sm font-medium">Lorem Ipsum</h4>
-                                    <p class="text-xs text-gray-500">Lorem ipsum dolor sit amet.</p>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium">{{ stats.totalDivisions }} divisions configured</p>
+                                        <p class="text-xs text-gray-500">Across {{ stats.totalCabinets }} cabinets</p>
+                                    </div>
                                 </div>
-
-                                <div class="p-4 border border-gray-100 rounded-lg bg-gray-50">
-                                    <div class="flex items-center mb-2 space-x-2">
-                                        <div class="w-2 h-2 bg-purple-500 rounded-full"></div>
-                                        <span class="text-xs text-gray-500">Lorem</span>
+                                <div class="flex items-start">
+                                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 mr-3 bg-indigo-100 rounded-full">
+                                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                                        </svg>
                                     </div>
-                                    <h4 class="mb-1 text-sm font-medium">Lorem Ipsum</h4>
-                                    <p class="text-xs text-gray-500">Lorem ipsum dolor sit amet.</p>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium">{{ stats.totalUIContent }} UI content items</p>
+                                        <p class="text-xs text-gray-500">Ready for management</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>

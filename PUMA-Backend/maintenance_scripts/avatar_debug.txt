@@ -1,0 +1,63 @@
+Kaustav Cabinet ID: 1
+
+=== KAUSTAV MEMBERS AVATAR DATA ===
+ID: 3
+  Name (member): Abdurrahman Khairi
+  Name (user): Abdurrahman Khairi
+  Photo Path: NULL
+  User Avatar: /PUMA-Website/khairi.JPG
+---
+ID: 4
+  Name (member): Filbert Sembiring Meliala
+  Name (user): Filbert Sembiring Meliala
+  Photo Path: NULL
+  User Avatar: /PUMA-Website/filbert.JPG
+---
+ID: 5
+  Name (member): Leonardo Dos Santos
+  Name (user): Leonardo Dos Santos
+  Photo Path: NULL
+  User Avatar: /PUMA-Website/leonardo.JPG
+---
+ID: 6
+  Name (member): Moshe Dayan
+  Name (user): Moshe Dayan
+  Photo Path: NULL
+  User Avatar: /PUMA-Website/moshe.JPG
+---
+ID: 7
+  Name (member): Elvia Aptanisa
+  Name (user): Elvia Aptanisa
+  Photo Path: NULL
+  User Avatar: /PUMA-Website/elvi.JPG
+---
+ID: 8
+  Name (member): Michelle
+  Name (user): Michelle
+  Photo Path: NULL
+  User Avatar: /PUMA-Website/michelle.JPG
+---
+ID: 9
+  Name (member): Desy Nursalsabila
+  Name (user): Desy Nursalsabila
+  Photo Path: NULL
+  User Avatar: /PUMA-Website/desy.JPG
+---
+ID: 10
+  Name (member): Putri Zahara
+  Name (user): Putri Zahara
+  Photo Path: NULL
+  User Avatar: /PUMA-Website/putri.JPG
+---
+ID: 11
+  Name (member): Zuldan Fahrizal Rahman
+  Name (user): Zuldan Fahrizal Rahman
+  Photo Path: NULL
+  User Avatar: /PUMA-Website/zuldan.JPG
+---
+ID: 12
+  Name (member): Isya Maghfira Zalfa
+  Name (user): Isya Maghfira Zalfa
+  Photo Path: NULL
+  User Avatar: /PUMA-Website/cica.JPG
+---

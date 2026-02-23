@@ -152,6 +152,8 @@ class MemberSeeder extends Seeder
                     'user_id' => $user->id,
                     'cabinet_id' => $kaustav->id,
                     'division_id' => $division->id,
+                    'name' => $memberData['name'],   // Added name
+                    'email' => $email,               // Added email
                     'position' => $memberData['position'],
                     'batch' => $memberData['batch'],
                     'status' => $memberData['status'],

@@ -20,6 +20,10 @@ import About from "../views/About.vue";
 import Aspirations from "../views/Aspirations.vue";
 import Merch from "../views/Merch.vue";
 import VideoManagement from "../views/admin/VideoManagement.vue";
+import UIContent from "../views/admin/UIContent.vue";
+import Banners from "../views/admin/Banners.vue";
+import Cabinets from "../views/admin/Cabinets.vue";
+import ActivityLogs from "../views/admin/ActivityLogs.vue";
 import AformationRegistration from "../views/AformationRegistration.vue";
 import AformationVideos from "../views/AformationVideos.vue";
 
@@ -57,6 +61,26 @@ const routes: Array<RouteRecordRaw> = [
     path: "/admin/videos",
     name: "VideoManagement",
     component: VideoManagement,
+  },
+  {
+    path: "/admin/ui-content",
+    name: "UIContent",
+    component: UIContent,
+  },
+  {
+    path: "/admin/banners",
+    name: "Banners",
+    component: Banners,
+  },
+  {
+    path: "/admin/cabinets",
+    name: "Cabinets",
+    component: Cabinets,
+  },
+  {
+    path: "/admin/activity-logs",
+    name: "ActivityLogs",
+    component: ActivityLogs,
   },
   {
     path: "/aformation/register",

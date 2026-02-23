@@ -8,6 +8,9 @@ use App\Http\Controllers\AspirationController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MemberController;
+use App\Http\Controllers\UIContentController;
+use App\Http\Controllers\BannerController;
+use App\Http\Controllers\ActivityLogController;
 use Illuminate\Support\Facades\Route;
 
 // Auth Routes
@@ -155,4 +158,37 @@ Route::prefix('members')->group(function () {
 
     // Delete member
     Route::delete('/{member}', [MemberController::class, 'destroy']);
+
+    // Update member display order (bulk)
+    Route::post('/reorder', [MemberController::class, 'updateOrder']);
+
+    // Toggle member visibility
+    Route::patch('/{member}/visibility', [MemberController::class, 'toggleVisibility']);
+
+    // Upload member photo
+    Route::post('/{member}/photo', [MemberController::class, 'uploadPhoto']);
+});
+
+// UI Content Management Routes
+Route::apiResource('ui-content', UIContentController::class);
+
+// Banner Management Routes
+Route::prefix('banners')->group(function () {
+    Route::get('/', [BannerController::class, 'index']);
+    Route::post('/', [BannerController::class, 'store']);
+    Route::get('/{banner}', [BannerController::class, 'show']);
+    Route::put('/{banner}', [BannerController::class, 'update']);
+    Route::delete('/{banner}', [BannerController::class, 'destroy']);
+    
+    // Upload banner image
+    Route::post('/upload-image', [BannerController::class, 'uploadImage']);
+});
+
+// Activity Logs Routes
+Route::prefix('activity-logs')->group(function () {
+    Route::get('/', [ActivityLogController::class, 'index']);
+    Route::get('/stats', [ActivityLogController::class, 'stats']);
+    Route::get('/recent', [ActivityLogController::class, 'recent']);
+    Route::get('/models', [ActivityLogController::class, 'models']);
+    Route::get('/user/{userId}', [ActivityLogController::class, 'byUser']);
 });

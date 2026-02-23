@@ -9,11 +9,11 @@ import { useEvents } from '@/composables/useEvents'
 const windowWidth = ref(0)
 
 // Use the events API composable
-const { events, loading, error, fetchCompletedEvents } = useEvents()
+const { events, loading, error, fetchEvents } = useEvents()
 
-// Computed property to filter for completed events
-const completedEvents = computed(() => {
-  return events.value.filter(event => event.status === 'completed')
+// Computed property to show all events (backend sorts by date desc)
+const displayedEvents = computed(() => {
+  return events.value
 })
 
 const itemsToShow = computed(() => {
@@ -28,8 +28,8 @@ const itemsToShow = computed(() => {
 
 const currentSlide = ref(0)
 const modalVisible = ref(false)
-// Initialize selectedEvent with the first completed event, or null if none exist
-const selectedEvent = ref(completedEvents.value.length > 0 ? completedEvents.value[0] : null)
+// Initialize selectedEvent with the first event, or null if none exist
+const selectedEvent = ref(null as any) // Type assertion to fix TS error briefly
 const isLoaded = ref(false)
 const patterns = ref<{ x: number; y: number; size: number; rotation: number; opacity: number; }[]>([])
 const backgroundCircles = ref<{ x: number; y: number; size: number; color: string; opacity: number; blur: number; }[]>([])
@@ -106,8 +106,12 @@ onMounted(async () => {
     once: true,
   })
 
-  // Fetch completed events from API
-  await fetchCompletedEvents()
+  // Fetch all events from API
+  await fetchEvents()
+  
+  if (displayedEvents.value.length > 0) {
+      selectedEvent.value = displayedEvents.value[0]
+  }
 })
 </script>
 
@@ -143,7 +147,7 @@ onMounted(async () => {
     <div class="container relative z-10 px-4 mx-auto">
       <div class="mb-16 text-center">
         <h2 data-aos="fade-up" class="mb-4 text-3xl text-5xl font-bold text-gray-800 sm:text-5xl">
-          Event <span class="text-black">Recap</span>
+          Our <span class="text-black">Events</span>
         </h2>
         <div class="w-24 h-1 mx-auto mb-6 rounded-full bg-gradient-to-r from-gray-300 to-black"></div>
         <p class="max-w-2xl px-4 mx-auto text-lg font-light text-gray-600">
@@ -159,7 +163,7 @@ onMounted(async () => {
           :autoplay="mainCarouselAutoplaySpeed" @slide-change="handleSlideChange"
           class="event-carousel"
         >
-          <Slide v-for="(event, index) in completedEvents" :key="index" class="carousel__item">
+          <Slide v-for="(event, index) in displayedEvents" :key="index" class="carousel__item">
             <div class="h-full mx-4 perspective">
               <div
                 class="overflow-hidden transition-all duration-500 transform bg-white shadow-lg rounded-xl backface-visibility-hidden event-card"

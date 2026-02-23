@@ -138,6 +138,51 @@ export const useCabinets = () => {
     }
   };
 
+  // Update cabinet
+  const updateCabinet = async (id: number, data: Partial<Cabinet>) => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const response = await axios.put<ApiResponse>(
+        `${API_BASE_URL}/cabinets/${id}`,
+        data
+      );
+
+      if (response.data.success) {
+        return response.data.data;
+      }
+    } catch (err: any) {
+      error.value = err.response?.data?.message || "Failed to update cabinet";
+      console.error("Error updating cabinet:", err);
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  // Delete cabinet
+  const deleteCabinet = async (id: number) => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const response = await axios.delete<ApiResponse>(
+        `${API_BASE_URL}/cabinets/${id}`
+      );
+
+      if (response.data.success) {
+        return true;
+      }
+    } catch (err: any) {
+      error.value = err.response?.data?.message || "Failed to delete cabinet";
+      console.error("Error deleting cabinet:", err);
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
   return {
     cabinets,
     cabinet,
@@ -146,5 +191,7 @@ export const useCabinets = () => {
     fetchCabinets,
     fetchCabinetById,
     fetchCabinetByName,
+    updateCabinet,
+    deleteCabinet,
   };
 };

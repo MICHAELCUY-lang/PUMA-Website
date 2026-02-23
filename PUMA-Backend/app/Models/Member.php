@@ -4,25 +4,29 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\LogsActivity;
 
 class Member extends Model
 {
-    /** @use HasFactory<\Database\Factories\MemberFactory> */
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $fillable = [
-        'id',
         'user_id',
         'cabinet_id',
         'division_id',
+        'name',
+        'email',
         'position',
         'status',
         'batch',
         'birthdate',
         'joined_date',
         'left_date',
-        'created_at',
-        'updated_at'
+        'display_order',
+        'is_visible',
+        'photo_path',
+        'instagram_url',
+        'linkedin_url',
     ];
     public function user()
     {

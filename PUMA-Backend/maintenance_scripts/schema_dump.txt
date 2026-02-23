@@ -1,0 +1,4 @@
+--- Table Definition for 'members' ---
+CREATE TABLE "members" ("id" integer primary key autoincrement not null, "user_id" integer, "cabinet_id" integer, "division_id" integer, "name" varchar not null, "position" varchar, "photo_path" varchar, "email" varchar, "instagram_url" varchar, "linkedin_url" varchar, "status" varchar not null default 'active', "batch" varchar, "birthdate" date, "joined_date" date, "left_date" date, "display_order" integer not null default '0', "is_visible" tinyint(1) not null default '1', "created_at" datetime, "updated_at" datetime, foreign key("user_id") references "users"("id") on delete cascade, foreign key("cabinet_id") references "cabinets"("id") on delete cascade, foreign key("division_id") references "divisions"("id") on delete cascade)
+
+--- Indexes on 'members' ---

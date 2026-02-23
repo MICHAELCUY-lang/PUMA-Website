@@ -65,6 +65,8 @@
                                             Division</th>
                                         <th class="p-3 text-xs tracking-wider text-left uppercase border-b border-black/10">
                                             Cabinet</th>
+                                        <th class="p-3 text-xs tracking-wider text-center uppercase border-b border-black/10">
+                                            Visible</th>
                                         <th class="p-3 text-xs tracking-wider text-left uppercase border-b border-black/10">
                                             Actions</th>
                                     </tr>
@@ -90,6 +92,21 @@
                                             </span>
                                         </td>
                                         <td class="p-3 text-black/70">{{ member.cabinet }}</td>
+                                        <td class="p-3 text-center">
+                                            <button @click="toggleVisibility(member.id)" 
+                                                :class="member.is_visible !== false ? 'text-green-600 hover:text-green-800' : 'text-gray-400 hover:text-gray-600'"
+                                                class="transition-colors duration-200"
+                                                :title="member.is_visible !== false ? 'Visible - Click to hide' : 'Hidden - Click to show'">
+                                                <svg v-if="member.is_visible !== false" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                                                </svg>
+                                                <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clip-rule="evenodd" />
+                                                    <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+                                                </svg>
+                                            </button>
+                                        </td>
                                         <td class="p-3">
                                             <div class="flex gap-2">
                                                 <button @click="viewDetails(member)"
@@ -359,7 +376,7 @@ import { useCabinets } from '@/composables/useCabinets';
 import { toast } from '@/components/ui/toast';
 import { ToastAction } from '@/components/ui/toast';
 
-const { members, loading, error, fetchMembers, createMember, updateMember, deleteMember } = useMembers();
+const { members, loading, error, fetchMembers, createMember, updateMember, deleteMember, toggleMemberVisibility, uploadMemberPhoto } = useMembers();
 const { divisions, fetchDivisions } = useDivisions();
 const { cabinets, fetchCabinets } = useCabinets();
 
@@ -391,6 +408,8 @@ const currentItem = ref({
 });
 const selectedItem = ref({});
 const deleteId = ref(null);
+// Avatar file for new members - DO NOT reassign, always use .value
+const uploadedAvatarFile = ref(null);
 
 const filteredMembers = computed(() => {
     let result = [...members.value];
@@ -444,17 +463,27 @@ function getDivisionTitle(divisionName) {
     return division ? division.title : divisionName;
 }
 
+
 function openAddModal() {
+    console.log('openAddModal called');
+    console.log('Type checks:', {
+        currentItem: typeof currentItem,
+        uploadedAvatarFile: typeof uploadedAvatarFile,
+        isEditing: typeof isEditing,
+        showEditModal: typeof showEditModal
+    });
+    
     currentItem.value = {
         name: '',
         email: '',
         position: '',
-        cabinet_id: cabinets.value[0]?.id || null,
+        cabinet_id: cabinets.value[0]?.id ?? null,
         batch: '',
-        division_id: divisions.value[0]?.id || null,
+        division_id: divisions.value[0]?.id ?? null,
         avatar: 'https://i.pinimg.com/736x/f2/96/65/f296659f98543ad0ee11738a62e7652f.jpg',
         user_id: null,
     };
+    uploadedAvatarFile.value = null; // Clear any previous file
     isEditing.value = false;
     showEditModal.value = true;
 }
@@ -540,30 +569,37 @@ async function confirmDelete() {
 async function saveMember() {
     try {
         const memberData = {
+            name: currentItem.value.name,
+            email: currentItem.value.email,
+            batch: currentItem.value.batch,
             user_id: currentItem.value.user_id,
             cabinet_id: currentItem.value.cabinet_id,
             division_id: currentItem.value.division_id,
             position: currentItem.value.position,
+            // Don't include avatar in data - it will be handled separately
         };
 
         if (isEditing.value && currentItem.value.id) {
+            // For updates, if there's a new file it will be uploaded separately via handleAvatarUpload
             await updateMember(currentItem.value.id, memberData);
             toast({
                 title: 'Member Updated',
                 description: 'The member has been successfully updated.',
             });
         } else {
-            await createMember(memberData);
+            // For new members, pass the file separately
+            await createMember(memberData, uploadedAvatarFile.value);
             toast({
                 title: 'Member Created',
                 description: 'The member has been successfully created.',
             });
+            uploadedAvatarFile.value = null; // Clear file after creation
         }
 
         await fetchMembers();
         showEditModal.value = false;
-    } catch (err) {
-        console.error('Error saving member:', err);
+    } catch (error) {
+        console.error('Error saving member:', error);
         toast({
             title: 'Error',
             description: 'Failed to save member. Please try again.',
@@ -572,12 +608,83 @@ async function saveMember() {
     }
 }
 
-function handleAvatarUpload(event) {
-    const file = event.target.files[0];
-    if (file) {
+
+
+// Toggle member visibility
+async function toggleVisibility(memberId) {
+    try {
+        await toggleMemberVisibility(memberId);
+        await fetchMembers();
+        toast({
+            title: 'Visibility Updated',
+            description: 'Member visibility has been toggled successfully.',
+        });
+    } catch (err) {
+        console.error('Error toggling visibility:', err);
+        toast({
+            title: 'Error',
+            description: 'Failed to toggle visibility. Please try again.',
+            variant: 'destructive',
+        });
+    }
+}
+
+// Handle avatar upload with actual file upload for existing members
+const uploadingPhoto = ref(false);
+
+async function handleAvatarUpload(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+        toast({
+            title: 'Invalid File',
+            description: 'Please select an image file.',
+            variant: 'destructive',
+        });
+        return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+        toast({
+            title: 'File Too Large',
+            description: 'Please select an image smaller than 2MB.',
+            variant: 'destructive',
+        });
+        return;
+    }
+
+    // If editing existing member, upload immediately
+    if (isEditing.value && currentItem.value.id) {
+        uploadingPhoto.value = true;
+        try {
+            const result = await uploadMemberPhoto(currentItem.value.id, file);
+            currentItem.value.avatar = result.photo_path;
+            await fetchMembers();
+            toast({
+                title: 'Photo Uploaded',
+                description: 'Member photo has been updated successfully.',
+            });
+        } catch (err) {
+            console.error('Error uploading photo:', err);
+            toast({
+                title: 'Upload Failed',
+                description: 'Failed to upload photo. Please try again.',
+                variant: 'destructive',
+            });
+        } finally {
+            uploadingPhoto.value = false;
+        }
+    } else {
+        // For new members, store the file and create a preview
+        uploadedAvatarFile.value = file;
+        
+        // Create preview URL for display
         const reader = new FileReader();
         reader.onload = (e) => {
-            currentItem.value.avatar = e.target.result;
+            currentItem.value.avatar = e.target?.result;
         };
         reader.readAsDataURL(file);
     }

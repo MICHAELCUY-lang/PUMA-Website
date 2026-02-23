@@ -7,6 +7,30 @@ use Illuminate\Database\Eloquent\Model;
 
 class ActivityLog extends Model
 {
-    /** @use HasFactory<\Database\Factories\ActivityLogFactory> */
     use HasFactory;
+
+    protected $fillable = [
+        'user_id',
+        'action',
+        'model',
+        'model_id',
+        'description',
+        'old_values',
+        'new_values',
+        'ip_address',
+        'user_agent',
+    ];
+
+    protected $casts = [
+        'old_values' => 'array',
+        'new_values' => 'array',
+    ];
+
+    /**
+     * Get the user that performed the action
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

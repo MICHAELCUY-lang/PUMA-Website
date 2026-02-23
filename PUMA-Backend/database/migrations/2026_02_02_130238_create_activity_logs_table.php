@@ -13,15 +13,21 @@ return new class extends Migration
     {
         Schema::create('activity_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
-            $table->string('action'); // created, updated, deleted, viewed, etc.
-            $table->string('model_type');
-            $table->unsignedBigInteger('model_id');
-            $table->text('changes')->nullable(); // JSON for tracking what changed
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('action'); // 'create', 'update', 'delete'
+            $table->string('model'); // 'Member', 'Division', 'Cabinet', etc.
+            $table->unsignedBigInteger('model_id')->nullable();
+            $table->text('description'); // Human-readable description
+            $table->json('old_values')->nullable(); // Before update/delete
+            $table->json('new_values')->nullable(); // After create/update
             $table->string('ip_address')->nullable();
             $table->string('user_agent')->nullable();
             $table->timestamps();
+            
+            // Indexes for better query performance
             $table->index(['user_id', 'created_at']);
+            $table->index(['model', 'model_id']);
+            $table->index('action');
         });
     }
 

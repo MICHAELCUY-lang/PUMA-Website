@@ -11,16 +11,20 @@ import {
 import { useRoute } from "vue-router";
 import MemberCardDisplay from "./MemberCardDisplay.vue";
 import { useMembers } from "@/composables/useMembers";
+import { useDivisions } from "@/composables/useDivisions";
+import { useCabinets } from "@/composables/useCabinets";
 
 const Navbar = defineAsyncComponent(() => import("../Navbar.vue"));
 const Footer = defineAsyncComponent(() => import("../Footer.vue"));
 
 const { members: apiMembers, fetchMembers } = useMembers();
+const { divisions, fetchDivisions } = useDivisions();
+const { cabinets, fetchCabinets } = useCabinets();
 
 interface Division {
   name: string;
   title: string;
-  image: string;
+  image?: string;
   description: string;
 }
 
@@ -38,73 +42,7 @@ interface Member {
   linkedin: string;
   personalDescription: string;
 }
-const divisions = [
-  {
-    name: "BOD",
-    title: "Board of Directors",
-    image: "/PUMA-Website/division/bod.JPG",
-    description:
-      "Strategic leadership and organizational governance, overseeing all major decisions and future planning for the organization.",
-  },
-  {
-    name: "RNT",
-    title: "Research and Technology",
-    image: "/PUMA-Website/division/rnt.jpg",
-    description:
-      "Focuses on innovation, technological advancements, and exploring new tools to enhance organizational capabilities.",
-  },
-  {
-    name: "HRD",
-    title: "Human Resources Development",
-    image: "/PUMA-Website/division/hrd.JPG",
-    description:
-      "Dedicated to talent acquisition, member development, training programs, and fostering a positive organizational culture.",
-  },
-  {
-    name: "ICM",
-    title: "Information and Creative Media",
-    image: "/PUMA-Website/division/icm.JPG",
-    description:
-      "Manages digital communication, content creation, branding, and all media-related activities to project our image.",
-  },
-  {
-    name: "IR",
-    title: "Internal Relations",
-    image: "/PUMA-Website/division/internal.JPG",
-    description:
-      "Tasked with building strong internal connections, organizing member events, and ensuring smooth intra-divisional collaborations.",
-  },
-  {
-    name: "ER",
-    title: "External Relations",
-    image: "/PUMA-Website/division/EXT.JPG",
-    description:
-      "Handles external partnerships, public relations, networking with other organizations, and managing our external stakeholder interactions.",
-  },
-  {
-    name: "SAC",
-    title: "Student Academic & Competition",
-    image: "/PUMA-Website/division/sac.JPG",
-    description:
-      "Supports members in their academic pursuits and facilitates participation in various competitions to foster excellence.",
-  },
-  {
-    name: "SPT",
-    title: "Student Passions & Talents",
-    image: "/PUMA-Website/division/spt.JPG",
-    description:
-      "Nurtures individual creativity, hobbies, and talents by providing platforms and resources for members to explore their interests.",
-  },
-  {
-    name: "TECHNOPRENEUR",
-    title: "Technopreneur",
-    image: "/PUMA-Website/division/Technoprenet.JPG",
-    description:
-      "Drives entrepreneurship in technology and innovation, guiding members in developing tech-based business ideas.",
-  },
-];
-
-const cabinets = ["Kaustav", "Fragnatious"];
+// Divisions and cabinets are now loaded from API via composables
 
 const allMembersFullList = ref<Member[]>([]);
 const route = useRoute();
@@ -250,15 +188,24 @@ const getStatusDot = (status: string) => {
   }
 };
 const getDivisionTitleByCode = (code: string): string => {
-  const division = divisions.find((d) => d.name === code);
+  const division = divisions.value.find((d: any) => d.name === code);
   return division ? division.title : code;
 };
 
 const loadDivisionData = async () => {
   isLoading.value = true;
   currentDivisionNameFromRoute.value = route.params.divisionName as string;
-  const divisionDetails = divisions.find(
-    (d) => d.name === currentDivisionNameFromRoute.value
+  
+  // Fetch divisions and cabinets if not already loaded
+  if (divisions.value.length === 0) {
+    await fetchDivisions();
+  }
+  if (cabinets.value.length === 0) {
+    await fetchCabinets();
+  }
+  
+  const divisionDetails = divisions.value.find(
+    (d: any) => d.name === currentDivisionNameFromRoute.value
   );
   currentDivisionTitle.value = divisionDetails
     ? divisionDetails.title
@@ -514,10 +461,10 @@ watch(
                 <option value="all">All Cabinets</option>
                 <option
                   v-for="cabinetItem in cabinets"
-                  :key="cabinetItem"
-                  :value="cabinetItem"
+                  :key="cabinetItem.id"
+                  :value="cabinetItem.name"
                 >
-                  {{ cabinetItem }}
+                  {{ cabinetItem.name }}
                 </option>
               </select>
               <div
